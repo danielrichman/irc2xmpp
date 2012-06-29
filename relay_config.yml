@@ -1,0 +1,7 @@
+logging:
+    level: WARNING
+    filename: relay.log
+socket: relay_sock
+jid: bot_account@example.com
+password: bot_account_password
+target: me@example.com

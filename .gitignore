@@ -1,0 +1,6 @@
+*.swp
+*.pyc
+ENV/
+relay_sock
+config.yml
+relay.log
