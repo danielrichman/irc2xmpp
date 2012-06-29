@@ -42,6 +42,7 @@ In irssi:
 
     /load irc2xmpp
     /set irc2xmpp_socket /home/daniel/.irssi/irc2xmpp/relay_sock
+    /set
 
 Finally;
 
