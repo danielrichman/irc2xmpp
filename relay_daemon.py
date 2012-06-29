@@ -59,6 +59,22 @@ class Sock(object):
         self.sock.close()
         os.unlink(sock.path)
 
+def detach_process():
+    # Fork
+    if os.fork() > 0:
+        os._exit(0)
+
+    # Detach
+    os.setsid()
+
+    null_fd = os.open(os.devnull, os.O_RDWR)
+    for s in [sys.stdin, sys.stdout, sys.stderr]:
+        os.dup2(null_fd, s.fileno())
+
+    # Fork
+    if os.fork() > 0:
+        os._exit(0)
+
 def kill(xmpp, sock):
     signal.alarm(30)
     logger.info("Signal: shutting down")
@@ -85,6 +101,9 @@ if __name__ == "__main__":
 
     xmpp = XMPP(config["jid"], config["password"], config["target"])
     sock = Sock(config["socket"], xmpp)
+
+    if "fork" in config and config["fork"]:
+        detach_process()
 
     for s in [signal.SIGTERM, signal.SIGINT]:
         signal.signal(s, lambda s, f: kill(xmpp, sock))
