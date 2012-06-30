@@ -19,7 +19,7 @@ Install
     git clone git://github.com/danielrichman/irc2xmpp.git
     cd irc2xmpp
     virtualenv ENV
-    (ENV/bin/activate; pip install -r requirements.txt)
+    ENV/bin/pip install -r requirements.txt
     cp relay_config.yml config.yml
 
 Create a random google account for the xmpp bot, and add the address (JID) and
@@ -42,7 +42,7 @@ In irssi:
 
     /load irc2xmpp
     /set irc2xmpp_socket /home/daniel/.irssi/irc2xmpp/relay_sock
-    /set
+    /save
 
 Finally;
 
