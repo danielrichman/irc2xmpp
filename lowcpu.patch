@@ -1,0 +1,56 @@
+diff -ur a/lib/python2.6/site-packages/sleekxmpp/xmlstream/scheduler.py b/lib/python2.6/site-packages/sleekxmpp/xmlstream/scheduler.py
+--- a/lib/python2.6/site-packages/sleekxmpp/xmlstream/scheduler.py	2012-06-30 12:39:09.000000000 +0000
++++ b/lib/python2.6/site-packages/sleekxmpp/xmlstream/scheduler.py	2012-06-30 11:47:54.000000000 +0000
+@@ -147,8 +147,8 @@
+                         if wait <= 0.0:
+                             newtask = self.addq.get(False)
+                         else:
+-                            if wait >= 3.0:
+-                                wait = 3.0
++                            if wait >= 20.0:
++                                wait = 20.0
+                             newtask = self.addq.get(True, wait)
+                     except queue.Empty:
+                         cleanup = []
+diff -ur a/lib/python2.6/site-packages/sleekxmpp/xmlstream/xmlstream.py b/lib/python2.6/site-packages/sleekxmpp/xmlstream/xmlstream.py
+--- a/lib/python2.6/site-packages/sleekxmpp/xmlstream/xmlstream.py	2012-06-30 12:39:09.000000000 +0000
++++ b/lib/python2.6/site-packages/sleekxmpp/xmlstream/xmlstream.py	2012-06-30 11:45:28.000000000 +0000
+@@ -57,7 +57,7 @@
+ 
+ #: The time in seconds to wait for events from the event queue, and also the
+ #: time between checks for the process stop signal.
+-WAIT_TIMEOUT = 1
++WAIT_TIMEOUT = 20
+ 
+ #: The number of threads to use to handle XML stream events. This is not the
+ #: same as the number of custom event handling threads. 
+@@ -1379,7 +1379,7 @@
+                     self.__failed_send_stanza = None
+                 else:
+                     try:
+-                        data = self.send_queue.get(True, 1)
++                        data = self.send_queue.get(True, self.wait_timeout)
+                     except queue.Empty:
+                         continue
+                 log.debug("SEND: %s", data)
+diff -ur a/lib/python2.6/threading.py b/lib/python2.6/threading.py
+--- a/lib/python2.6/threading.py	2012-06-30 12:39:57.000000000 +0000
++++ b/lib/python2.6/threading.py	2012-06-30 11:44:29.000000000 +0000
+@@ -251,7 +251,7 @@
+                 # little at first, longer as time goes on, but never longer
+                 # than 20 times per second (or the timeout time remaining).
+                 endtime = _time() + timeout
+-                delay = 0.0005 # 500 us -> initial delay of 1 ms
++                delay = 1.0
+                 while True:
+                     gotit = waiter.acquire(0)
+                     if gotit:
+@@ -259,7 +259,7 @@
+                     remaining = endtime - _time()
+                     if remaining <= 0:
+                         break
+-                    delay = min(delay * 2, remaining, .05)
++                    delay = min(delay * 2, remaining, 20.0)
+                     _sleep(delay)
+                 if not gotit:
+                     if __debug__:

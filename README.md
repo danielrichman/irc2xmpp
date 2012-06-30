@@ -51,3 +51,16 @@ Finally;
     @reboot screen -d -m irssi
     @reboot (cd /home/daniel/.irssi/irc2xmpp; ENV/bin/python relay_daemon.py config.yml)
 
+This uses more than 0.0001% cpu! Unacceptable.
+----------------------------------------------
+
+Python likes polling condition variables. This patch reduces the symptoms.
+
+Side effects: slow at shutting down, lag when sending messages (not really
+important). Obviously only do this to the virtualenv that irc2xmpp uses because
+it would probably mess up other software up badly.
+
+    cp /usr/lib/python2.7/threading.py ENV/lib/python2.7/threading.py
+    patch -d ENV -p1 < lowcpu.patch
+
+Probably have to do it manually for other python versions.
