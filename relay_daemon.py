@@ -5,6 +5,7 @@ import os
 import logging
 import socket
 import signal
+import time
 import yaml
 import sleekxmpp
 
@@ -31,9 +32,11 @@ class XMPP(sleekxmpp.ClientXMPP):
         self.send_message(mto=self.target, mbody=message, mtype='chat')
 
 class Sock(object):
-    def __init__(self, path, xmpp):
+    def __init__(self, path, xmpp, throttle=None):
         self.path = path
         self.xmpp = xmpp
+        self.throttle = throttle
+        self.last_message = 0
 
         if os.access(path, os.F_OK):
             os.unlink(path)
@@ -50,10 +53,18 @@ class Sock(object):
         return unicode(text, "ascii", "ignore")
 
     def run(self):
+        queue = []
+
         while True:
             msg, peer = self.sock.recvfrom(10024)
             msg = self.try_unicode(msg)
-            self.xmpp.send_target_message(msg)
+            queue.append(msg)
+
+            now = time.time()
+            if not self.throttle or now - self.last_message > self.throttle:
+                self.last_message = now
+                self.xmpp.send_target_message(' '.join(queue))
+                queue = []
 
     def close(self):
         self.sock.close()
@@ -99,8 +110,11 @@ if __name__ == "__main__":
         logconfig["level"] = getattr(logging, logconfig["level"])
     logging.basicConfig(**logconfig)
 
+    if "throttle" not in config:
+        config["throttle"] = None
+
     xmpp = XMPP(config["jid"], config["password"], config["target"])
-    sock = Sock(config["socket"], xmpp)
+    sock = Sock(config["socket"], xmpp, config["throttle"])
 
     if "fork" in config and config["fork"]:
         detach_process()
