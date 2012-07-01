@@ -53,18 +53,14 @@ class Sock(object):
         return unicode(text, "ascii", "ignore")
 
     def run(self):
-        queue = []
-
         while True:
             msg, peer = self.sock.recvfrom(10024)
             msg = self.try_unicode(msg)
-            queue.append(msg)
 
             now = time.time()
             if not self.throttle or now - self.last_message > self.throttle:
                 self.last_message = now
-                self.xmpp.send_target_message(' '.join(queue))
-                queue = []
+                self.xmpp.send_target_message(msg)
 
     def close(self):
         self.sock.close()
